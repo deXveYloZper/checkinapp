@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema(
       enum: ['owner', 'agent'],
       required: true
     },
+    name: 
+    { type: String, default: '' },
     fcmToken: {
       type: String,
       default: null

@@ -1,39 +1,65 @@
-// client/App.js (simplified example)
-import React, { useEffect } from 'react';
-import { View, Text } from 'react-native';
+// App.js
+import React, { useEffect, useState, useCallback } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import messaging from '@react-native-firebase/messaging';
-import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { requestUserPermission, handleBackgroundMessage, handleForegroundMessage } from './src/utils/notifications';
+import RootNavigator from './src/navigation/RootNavigator';
+import { navigationRef } from './src/navigation/NavigationRef';
+import { AppState, Platform } from 'react-native';
+// Example crash/analytics placeholders
+// import analytics from '@react-native-firebase/analytics';
+// import * as Sentry from '@sentry/react-native';
 
-function App() {
-  useEffect(() => {
-    // Request permission (for iOS). On Android, it’s often granted by default for FCM.
-    messaging().requestPermission().then(authStatus => {
-      console.log('FCM auth status:', authStatus);
-    });
+messaging().setBackgroundMessageHandler(handleBackgroundMessage);
 
-    // Get the device token
-    messaging()
-      .getToken()
-      .then(fcmToken => {
-        console.log('FCM Token:', fcmToken);
-        // send fcmToken to the server if user is authenticated
-        // e.g. axios.post('/user/fcmToken', { fcmToken }, { headers: { Authorization: 'Bearer XXX' } })
-      });
+export default function App() {
+  const [initialRoute, setInitialRoute] = useState('Login');
 
-    // Optional: listen for token refresh
-    const unsubscribe = messaging().onTokenRefresh(token => {
-      console.log('FCM Token refreshed:', token);
-      // same logic: send updated token to server
-    });
-
-    return () => unsubscribe();
+  // If user logs out or token changes, we can re-check
+  const recheckAuth = useCallback(async () => {
+    const token = await AsyncStorage.getItem('token');
+    const role = await AsyncStorage.getItem('userRole');
+    if (token && role) {
+      setInitialRoute('RoleBased');
+    } else {
+      setInitialRoute('Login');
+    }
   }, []);
 
+  useEffect(() => {
+    // 1) Request iOS permission if needed
+    requestUserPermission();
+
+    // 2) Foreground listener for FCM
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      handleForegroundMessage(remoteMessage);
+    });
+
+    // 3) Check if user is already logged in initially
+    recheckAuth();
+
+    // 4) Example analytics/crash initialization
+    // analytics().logAppOpen();
+    // Sentry.init({ dsn: 'YOUR_SENTRY_DSN' });
+
+    // 5) Listen for app resume or token changes
+    const subscription = AppState.addEventListener('change', async (nextState) => {
+      if (nextState === 'active') {
+        // Re-check if token changed while backgrounded
+        await recheckAuth();
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      subscription.remove();
+    };
+  }, [recheckAuth]);
+
   return (
-    <View style={{ marginTop: 50 }}>
-      <Text>Welcome to Firenze Check-In App with FCM!</Text>
-    </View>
+    <NavigationContainer ref={navigationRef}>
+      <RootNavigator initialRoute={initialRoute} />
+    </NavigationContainer>
   );
 }
-
-export default App;
