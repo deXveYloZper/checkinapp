@@ -26,7 +26,7 @@ export function verifyToken(req, res, next) {
     // Verify the token
     const decoded = jwt.verify(token, JWT_SECRET);
     // Attach decoded user info to request
-    req.user = decoded; // e.g., { id: ..., role: ... }
+    req.user = decoded; // e.g., { id, role, iat, exp }
     next();
   } catch (error) {
     console.error('verifyToken error:', error.message);

@@ -3,11 +3,13 @@
 import mongoose from 'mongoose';
 
 /*
-  This user schema supports:
-    - email (unique)
-    - password (hashed via bcrypt)
+  The user schema supports:
+    - email (unique, lowercased)
+    - password (hashed)
     - role ("owner" or "agent")
+    - fcmToken for push notifications
 */
+
 const userSchema = new mongoose.Schema(
   {
     email: {
@@ -24,12 +26,21 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['owner', 'agent'],
       required: true
+    },
+    fcmToken: {
+      type: String,
+      default: null
     }
   },
   {
-    timestamps: true // automatically adds createdAt, updatedAt fields
+    timestamps: true
   }
 );
 
-// Export as a Mongoose model named "User"
+// Index the email field for faster unique lookups
+userSchema.index({ email: 1 }, { unique: true });
+
+// You can also add pre-save password hashing if you want it at the model level
+// but currently, we do hashing in auth routes.
+
 export default mongoose.model('User', userSchema);

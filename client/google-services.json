@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "101845273245",
+    "project_id": "checkinfirenze",
+    "storage_bucket": "checkinfirenze.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:101845273245:android:f9760fdb4b8100e1ab6274",
+        "android_client_info": {
+          "package_name": "com.firenzecheckinapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwyWY_6gocOwNnqnZMT2pGD5ulg1J5Z1U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

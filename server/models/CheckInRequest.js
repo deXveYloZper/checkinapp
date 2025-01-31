@@ -2,6 +2,14 @@
 
 import mongoose from 'mongoose';
 
+/*
+  CheckInRequest schema tracks:
+   - ownerId: the property owner
+   - propertyAddress, checkInTime, guestCount
+   - agentId: set once an agent accepts
+   - status: "open", "accepted", or "completed"
+*/
+
 const checkInRequestSchema = new mongoose.Schema(
   {
     ownerId: {
@@ -21,13 +29,11 @@ const checkInRequestSchema = new mongoose.Schema(
       type: Number,
       default: 1
     },
-    // agentId will be null or undefined if no agent has accepted yet
     agentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       default: null
     },
-    // optional status to track if request is 'open', 'accepted', 'completed'
     status: {
       type: String,
       enum: ['open', 'accepted', 'completed'],
@@ -35,8 +41,15 @@ const checkInRequestSchema = new mongoose.Schema(
     }
   },
   {
-    timestamps: true
+    timestamps: true // adds createdAt, updatedAt
   }
 );
+
+// Optional: Index on status for quicker queries on open/accepted requests
+checkInRequestSchema.index({ status: 1, createdAt: -1 });
+
+// Potentially index ownerId or agentId if you do frequent lookups by user
+checkInRequestSchema.index({ ownerId: 1 });
+checkInRequestSchema.index({ agentId: 1 });
 
 export default mongoose.model('CheckInRequest', checkInRequestSchema);

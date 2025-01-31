@@ -15,9 +15,9 @@ export async function connectDB() {
     if (!MONGO_URI) {
       throw new Error('MONGO_URI is not defined in .env');
     }
-    // Connect to MongoDB
+    // Connect to MongoDB without deprecated options
     await mongoose.connect(MONGO_URI);
-    
+
     console.log('MongoDB connected successfully.');
   } catch (error) {
     console.error('MongoDB connection error:', error.message);
